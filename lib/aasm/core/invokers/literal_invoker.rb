@@ -29,8 +29,8 @@ module AASM
         def exec_subject
           raise(*record_error) unless record.respond_to?(subject, true)
           return record.__send__(subject) if subject_arity.zero?
-          return record.__send__(subject, *args) if subject_arity < 0
-          record.__send__(subject, *args[0..(subject_arity - 1)])
+          return record.__send__(subject, *args, **kwargs) if subject_arity < 0
+          record.__send__(subject, *args[0..(subject_arity - 1)], **kwargs)
         end
         # rubocop:enable Metrics/AbcSize
 

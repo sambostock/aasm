@@ -42,12 +42,12 @@ module AASM::Core
     # a neutered version of fire - it doesn't actually fire the event, it just
     # executes the transition guards to determine if a transition is even
     # an option given current conditions.
-    def may_fire?(obj, to_state=::AASM::NO_VALUE, *args)
-      _fire(obj, {:test_only => true}, to_state, *args) # true indicates test firing
+    def may_fire?(obj, to_state=::AASM::NO_VALUE, *args, **kwargs)
+      _fire(obj, {:test_only => true}, to_state, *args, **kwargs) # true indicates test firing
     end
 
-    def fire(obj, options={}, to_state=::AASM::NO_VALUE, *args)
-      _fire(obj, options, to_state, *args) # false indicates this is not a test (fire!)
+    def fire(obj, options={}, to_state=::AASM::NO_VALUE, *args, **kwargs)
+      _fire(obj, options, to_state, *args, **kwargs) # false indicates this is not a test (fire!)
     end
 
     def transitions_from_state?(state)
@@ -66,20 +66,20 @@ module AASM::Core
       @transitions.select { |t| t.to == state }
     end
 
-    def fire_global_callbacks(callback_name, record, *args)
-      invoke_callbacks(state_machine.global_callbacks[callback_name], record, args)
+    def fire_global_callbacks(callback_name, record, *args, **kwargs)
+      invoke_callbacks(state_machine.global_callbacks[callback_name], record, args, kwargs)
     end
 
-    def fire_callbacks(callback_name, record, *args)
+    def fire_callbacks(callback_name, record, *args, **kwargs)
       # strip out the first element in args if it's a valid to_state
       # #given where we're coming from, this condition implies args not empty
-      invoke_callbacks(@options[callback_name], record, args)
+      invoke_callbacks(@options[callback_name], record, args, kwargs)
     end
 
-    def fire_transition_callbacks(obj, *args)
+    def fire_transition_callbacks(obj, *args, **kwargs)
       from_state = obj.aasm(state_machine.name).current_state
       transition = @valid_transitions[from_state]
-      @valid_transitions[from_state].invoke_success_callbacks(obj, *args) if transition
+      @valid_transitions[from_state].invoke_success_callbacks(obj, *args, **kwargs) if transition
     end
 
     def ==(event)
@@ -123,7 +123,7 @@ module AASM::Core
       definitions
     end
 
-    def _fire(obj, options={}, to_state=::AASM::NO_VALUE, *args)
+    def _fire(obj, options={}, to_state=::AASM::NO_VALUE, *args, **kwargs)
       result = options[:test_only] ? false : nil
       clear_failed_callbacks
       transitions = @transitions.select { |t| t.from == obj.aasm(state_machine.name).current_state || t.from == nil}
@@ -142,14 +142,14 @@ module AASM::Core
       transitions.each do |transition|
         next if to_state and !Array(transition.to).include?(to_state)
         if (options.key?(:may_fire) && transition.eql?(options[:may_fire])) ||
-           (!options.key?(:may_fire) && transition.allowed?(obj, *args))
+           (!options.key?(:may_fire) && transition.allowed?(obj, *args, **kwargs))
 
           if options[:test_only]
             result = transition
           else
             result = to_state || Array(transition.to).first
             Array(transition.to).each {|to| @valid_transitions[to] = transition }
-            transition.execute(obj, *args)
+            transition.execute(obj, *args, **kwargs)
           end
 
           break
@@ -163,8 +163,8 @@ module AASM::Core
       transitions.each { |transition| transition.failures.clear }
     end
 
-    def invoke_callbacks(code, record, args)
-      Invoker.new(code, record, args)
+    def invoke_callbacks(code, record, args, kwargs)
+      Invoker.new(code, record, args, kwargs)
              .with_default_return_value(false)
              .invoke
     end

@@ -21,10 +21,11 @@ module AASM
       # +record+  - invoking record
       # +args+    - arguments which will be passed to the callback
 
-      def initialize(subject, record, args)
+      def initialize(subject, record, args, kwargs)
         @subject = subject
         @record = record
         @args = args
+        @kwargs = args
         @options = {}
         @failures = []
         @default_return_value = DEFAULT_RETURN_VALUE
@@ -91,7 +92,7 @@ module AASM
 
       private
 
-      attr_reader :subject, :record, :args, :options, :failures,
+      attr_reader :subject, :record, :args, :kwargs, :options, :failures,
                   :default_return_value
 
       def invoke_array
@@ -101,7 +102,7 @@ module AASM
       end
 
       def sub_invoke(new_subject)
-        self.class.new(new_subject, record, args)
+        self.class.new(new_subject, record, args, kwargs)
             .with_failures(failures)
             .with_options(options)
             .invoke
@@ -109,19 +110,19 @@ module AASM
 
       def proc_invoker
         @proc_invoker ||= Invokers::ProcInvoker
-                          .new(subject, record, args)
+                          .new(subject, record, args, kwargs)
                           .with_failures(failures)
       end
 
       def class_invoker
         @class_invoker ||= Invokers::ClassInvoker
-                           .new(subject, record, args)
+                           .new(subject, record, args, kwargs)
                            .with_failures(failures)
       end
 
       def literal_invoker
         @literal_invoker ||= Invokers::LiteralInvoker
-                             .new(subject, record, args)
+                             .new(subject, record, args, kwargs)
                              .with_failures(failures)
       end
     end

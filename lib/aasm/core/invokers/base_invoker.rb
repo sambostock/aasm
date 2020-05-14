@@ -7,7 +7,7 @@ module AASM
       # Base concrete invoker class which contain basic
       # invoking and logging definitions
       class BaseInvoker
-        attr_reader :failures, :subject, :record, :args, :result
+        attr_reader :failures, :subject, :record, :args, :kwargs, :result
 
         ##
         # Initialize a new concrete invoker instance.
@@ -19,11 +19,13 @@ module AASM
         # +subject+ - invoking subject comparable with this invoker
         # +record+  - invoking record
         # +args+    - arguments which will be passed to the callback
+        # +kwargs+  - keyword arguments which will be passed to the callback
 
-        def initialize(subject, record, args)
+        def initialize(subject, record, args, kwargs)
           @subject = subject
           @record = record
           @args = args
+          @kwargs = kwargs
           @result = false
           @failures = []
         end

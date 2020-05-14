@@ -38,8 +38,8 @@ module AASM
         def retrieve_instance
           return subject.new if subject_arity.zero?
           return subject.new(record) if subject_arity == 1
-          return subject.new(record, *args) if subject_arity < 0
-          subject.new(record, *args[0..(subject_arity - 2)])
+          return subject.new(record, *args, **kwargs) if subject_arity < 0
+          subject.new(record, *args[0..(subject_arity - 2)], **kwargs)
         end
         # rubocop:enable Metrics/AbcSize
 

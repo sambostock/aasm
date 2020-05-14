@@ -33,8 +33,8 @@ module AASM
         # rubocop:disable Metrics/AbcSize
         def exec_proc(parameters_size)
           return record.instance_exec(&subject) if parameters_size.zero?
-          return record.instance_exec(*args, &subject) if parameters_size < 0
-          record.instance_exec(*args[0..(parameters_size - 1)], &subject)
+          return record.instance_exec(*args, **kwargs, &subject) if parameters_size < 0
+          record.instance_exec(*args[0..(parameters_size - 1)], **kwargs, &subject)
         end
         # rubocop:enable Metrics/AbcSize
 
